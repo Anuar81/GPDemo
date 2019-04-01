@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">GeoPagos Demo App</string>
+    <string name="main_total_amount">Total $</string>
+    <string name="main_initial_amount">00,00</string>
+    <string name="main_btn_pay">Pagar</string>
+    <string name="main_add_amount">Ingrese el monto a cobrar</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="card_title">prueba</string>
+    <string name="card_btn_back">Atras</string>
+    <string name="card_btn_finish">Pagar</string>
+    <string name="card_btn_fordward">Siguiente</string>
+
+    <string name="fragment_error_fordward">Por favor seleccione un item</string>
+</resources>
