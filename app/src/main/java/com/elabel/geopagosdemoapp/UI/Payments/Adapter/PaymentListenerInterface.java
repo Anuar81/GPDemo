@@ -1,6 +1,6 @@
 package com.elabel.geopagosdemoapp.UI.Payments.Adapter;
 
 public interface PaymentListenerInterface {
-    void paymentsListener(String id, String imgOrTxt);
+    void paymentsListener(String leyenda, String id, String imgOrTxt);
 
 }

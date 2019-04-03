@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.elabel.geopagosdemoapp.Model.Bank.Bank;
+import com.elabel.geopagosdemoapp.Model.Installments.PayerCost;
 import com.elabel.geopagosdemoapp.Model.PM.PM;
 import com.elabel.geopagosdemoapp.R;
 import com.elabel.geopagosdemoapp.Utils.StepsNumbersUtils;
@@ -23,6 +24,7 @@ public class PaymentsRVAdapter extends RecyclerView.Adapter<AdapterVH> {
     private int step;
     private PM pm;
     private Bank bank;
+    private PayerCost payerCost;
 
     public PaymentsRVAdapter(Context context, PaymentListenerInterface listener, int step) {
         this.context = context;
@@ -44,18 +46,25 @@ public class PaymentsRVAdapter extends RecyclerView.Adapter<AdapterVH> {
 
     @Override
     public void onBindViewHolder(@NonNull AdapterVH holder, int position) {
-        if(step == StepsNumbersUtils.INITIAL_STEP){
-            pm = (PM) paymentsList.get(position);
-            holder.setData(pm.getName(), pm.getId(), pm.getSecureThumbnail());
-        }else if (step == StepsNumbersUtils.BANK_STEP){
-            bank = (Bank) paymentsList.get(position);
-            holder.setData(bank.getName(), bank.getId(), bank.getSecureThumbnail());
+        switch (step){
+            case StepsNumbersUtils.INITIAL_STEP:
+                pm = (PM) paymentsList.get(position);
+                holder.setData(pm.getName(), pm.getId(), pm.getSecureThumbnail());
+                break;
+            case StepsNumbersUtils.BANK_STEP:
+                bank = (Bank) paymentsList.get(position);
+                holder.setData(bank.getName(), bank.getId(), bank.getSecureThumbnail());
+                break;
+            case StepsNumbersUtils.INSTALLSMENTS_STEP:
+                payerCost = (PayerCost)paymentsList.get(position);
+                holder.setData(payerCost.getRecommendedMessage(), payerCost.getInstallments().toString(),payerCost.getRecommendedMessage());
+
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.paymentsListener(holder.getId(), holder.getImgOrTxt());
+                listener.paymentsListener(holder.getLegend(), holder.getId(), holder.getImgOrTxt());
             }
         });
 

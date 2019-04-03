@@ -14,6 +14,7 @@ public class AdapterVH extends RecyclerView.ViewHolder {
     @BindView(R.id.txtItemPayment)
     TextView txtItemPayment;
 
+    private String legend;
     private String id;
     private String imgOrTxt;
 
@@ -22,10 +23,15 @@ public class AdapterVH extends RecyclerView.ViewHolder {
         ButterKnife.bind(this,itemView);
     }
 
-    public void setData(String leyenda, String id, String imgOrTxt){
-        txtItemPayment.setText(leyenda);
+    public void setData(String legend, String id, String imgOrTxt){
+        txtItemPayment.setText(legend);
+        this.legend = legend;
         this.id = id;
         this.imgOrTxt = imgOrTxt;
+    }
+
+    public String getLegend() {
+        return legend;
     }
 
     public String getId() {

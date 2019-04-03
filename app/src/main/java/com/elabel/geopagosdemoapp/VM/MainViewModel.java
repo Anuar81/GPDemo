@@ -4,7 +4,7 @@ import java.text.DecimalFormat;
 
 import androidx.lifecycle.ViewModel;
 
-public class MainViewModel extends ViewModel {
+public class MainViewModel extends ViewModel  {
     private Double amount = 0.00;
     private DecimalFormat df = new DecimalFormat(".##");
 

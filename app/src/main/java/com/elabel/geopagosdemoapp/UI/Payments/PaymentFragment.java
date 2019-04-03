@@ -12,11 +12,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.elabel.geopagosdemoapp.Model.Bank.Bank;
+import com.elabel.geopagosdemoapp.Model.Installments.PayerCost;
 import com.elabel.geopagosdemoapp.Model.PM.PM;
+import com.elabel.geopagosdemoapp.Model.Preference.Preference;
 import com.elabel.geopagosdemoapp.R;
 import com.elabel.geopagosdemoapp.UI.Main.ListenerMain;
 import com.elabel.geopagosdemoapp.UI.Payments.Adapter.PaymentListenerInterface;
@@ -54,6 +57,20 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
     Button btnCardFinish;
     @BindView(R.id.cardPayments)
     CardView cardPayments;
+    @BindView(R.id.cardTxtInstallments)
+    TextView txtInstallments;
+    @BindView(R.id.cardLayoutRv)
+    LinearLayout cardLayoutRv;
+    @BindView(R.id.cardLayoutFinalStep)
+    LinearLayout cardLayoutFinalStep;
+    @BindView(R.id.cardTxtLFSTotalAmountNumber)
+    TextView cardTxtLFSTotalAmount;
+    @BindView(R.id.cardTxtLFSPMLegend)
+    TextView cardTxtLFSPMLegends;
+    @BindView(R.id.cardTxtLFSBankLegend)
+    TextView cardTxtLFSBankLegend;
+    @BindView(R.id.cardTxtLFSInstallmentsLegend)
+    TextView cardTxtLFSInstallmentsLegend;
 
     private ListenerMain listenerMain;
     private PaymentsViewModel vm;
@@ -83,6 +100,8 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
         if(bundle != null){
             vm.setAmount(bundle.getDouble(AMOUNT));
             vm.setStep(StepsNumbersUtils.INITIAL_STEP);
+            vm.setInstallmentsTotal("");
+            vm.setInstallmentMessage("");
         }
 
         initViews();
@@ -105,9 +124,25 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
         vm.getBanksListLD().observe(this, new Observer<List<Bank>>() {
             @Override
             public void onChanged(List<Bank> banks) {
-                if(vm.getStep().equals(2)){
+                if(vm.getStep().equals(StepsNumbersUtils.BANK_STEP)){
                     loadListToAdapter(banks);
                 }
+            }
+        });
+
+        vm.getPcListLD().observe(this, new Observer<List<PayerCost>>() {
+            @Override
+            public void onChanged(List<PayerCost> payerCosts) {
+                if(vm.getStep().equals(StepsNumbersUtils.INSTALLSMENTS_STEP)){
+                    loadListToAdapter(payerCosts);
+                }
+            }
+        });
+
+        vm.getPreferenceIDLD().observe(this, new Observer<Preference>() {
+            @Override
+            public void onChanged(Preference preference) {
+                listenerMain.initPay(preference);
             }
         });
 
@@ -119,22 +154,46 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
             }
         });
 
+        btnCardBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goBack();
+            }
+        });
+
+        btnCardFinish.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vm.getPreference();
+                btnCardFinish.setEnabled(false);
+            }
+        });
+
         return view;
     }
 
     private void initViews(){
+        initLayoutAndBtnBottoms();
         txtCardTitle.setText(vm.getCardTitle());
-        initBtnBottoms();
-        imgCardThumbs.setVisibility(View.GONE);
+        loadImgOrTxt(vm.getUrlOrTxt());
     }
 
-    private void initBtnBottoms(){
-        if (vm.getStep() == StepsNumbersUtils.FINAL_STEP){
-            btnCardBack.setVisibility(View.INVISIBLE);
+    private void initLayoutAndBtnBottoms(){
+        if (vm.getStep().equals(StepsNumbersUtils.FINAL_STEP)){
+            cardLayoutFinalStep.setVisibility(View.VISIBLE);
             btnCardForward.setVisibility(View.INVISIBLE);
+            setTxtToFinalStep();
         }else{
+            cardLayoutRv.setVisibility(View.VISIBLE);
             btnCardFinish.setVisibility(View.INVISIBLE);
         }
+    }
+
+    private void setTxtToFinalStep(){
+        cardTxtLFSTotalAmount.setText("$ " + vm.getAmount().toString());
+        cardTxtLFSPMLegends.setText(vm.getPmLegend());
+        cardTxtLFSBankLegend.setText(vm.getBankLegend());
+        cardTxtLFSInstallmentsLegend.setText(vm.getInstallmentMessage());
     }
 
     private void loadListToAdapter(List<?>list){
@@ -145,9 +204,23 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
         }
     }
 
-    private void loadImg(String url){
-        Picasso.get().load(url).into(imgCardThumbs);
-        imgCardThumbs.setVisibility(View.VISIBLE);
+    private void loadImgOrTxt(String urlOrTxt){
+        if(vm.getStep().equals(StepsNumbersUtils.INSTALLSMENTS_STEP)){
+            txtInstallments.setText(urlOrTxt);
+        }else if(!vm.getStep().equals(StepsNumbersUtils.FINAL_STEP) && !urlOrTxt.isEmpty()){
+            Picasso.get().load(urlOrTxt).into(imgCardThumbs);
+            imgCardThumbs.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void goBack(){
+        if(vm.goBack()){
+            listenerMain.reloadFragments();
+            getActivity().getSupportFragmentManager().beginTransaction().remove(PaymentFragment.this).commit();
+        }else{
+            getActivity().getSupportFragmentManager().beginTransaction().remove(PaymentFragment.this).commit();
+        }
+
     }
 
     private void goFordward(){
@@ -161,13 +234,9 @@ public class PaymentFragment extends Fragment implements PaymentListenerInterfac
     }
 
     @Override
-    public void paymentsListener(String id, String imgOrTxt) {
-        if(vm.getStep().equals(StepsNumbersUtils.INITIAL_STEP)){
-            vm.setPmID(id);
-            loadImg(imgOrTxt);
-        }else if(vm.getStep().equals(StepsNumbersUtils.BANK_STEP)){
-            vm.setBankID(id);
-            loadImg(imgOrTxt);
-        }
+    public void paymentsListener(String leyenda, String id, String imgOrTxt) {
+        vm.saveDatainVM(leyenda,id,imgOrTxt);
+        loadImgOrTxt(imgOrTxt);
     }
+
 }

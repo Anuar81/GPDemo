@@ -12,4 +12,8 @@
     <string name="card_btn_fordward">Siguiente</string>
 
     <string name="fragment_error_fordward">Por favor seleccione un item</string>
+    <string name="cardTxtLFSTotalAmount">Cantidad a pagar</string>
+    <string name="cardTxtLFSPM">Medio de pago elegido</string>
+    <string name="cardTxtLFSBank">Banco Seleccionado</string>
+    <string name="cardTxtLFSIstallments">Cantidad de cuotas y monto</string>
 </resources>
